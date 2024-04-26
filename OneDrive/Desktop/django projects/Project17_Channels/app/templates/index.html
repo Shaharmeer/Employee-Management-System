@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+</head>
+<body>
+<h2>Chat Room</h2>
+<div id="user"></div>
+<div id="chat">
+    {% for chat in chats %}
+        <p>{{ chat.message }}</p>
+    {% endfor %}
+</div>
+<br>
+<textarea id="message" cols="20" rows="20"></textarea>
+<button id="button">Send</button>
+<!--<form id="chatForm" method="post" action="/{{ group }}/chat/">-->
+<!--    {% csrf_token %}-->
+<!--    <input type="text" name="message" id="message" placeholder="Enter your message">-->
+<!--    <button id="button" type="button">Send</button>-->
+<!--</form>-->
+<br>
+<h6 id="a"></h6>
+<h3>This group name is: {{ group }}</h3>
+<script>
+    var wsUri = 'ws://' + window.location.host + '/ws/ac/{{ group }}';
+    var ws = new WebSocket(wsUri);
+    ws.onopen = function (event) {
+        console.log('WebSocket Connection open', event);
+    };
+    ws.onmessage = function (event) {
+        console.log('Message received from server', event);
+        console.log(typeof event.data);
+        var data = JSON.parse(event.data);
+        document.getElementById('chat').innerHTML += data.msg +"<br>";
+        document.getElementById('user').innerHTML += data.username +"<br>";
+
+    };
+    ws.onerror = function (event) {
+        console.log('WebSocket error occurred', event);
+    };
+    ws.onclose = function (event) {
+        console.log('Connection closed', event);
+    };
+
+    document.getElementById('button').addEventListener('click', function(event) {
+        // event.preventDefault();  // Prevent default button click behavior
+        const message = document.getElementById('message').value;
+        ws.send(JSON.stringify({'msg': message}));  // Send message via WebSocket
+        document.getElementById('message').value = "";  // Clear input field after sending
+
+    });
+</script>
+</body>
+</html>
